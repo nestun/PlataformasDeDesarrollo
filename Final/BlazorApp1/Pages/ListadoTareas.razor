@@ -1,0 +1,80 @@
+﻿@page "/ListadoTareas"
+@using BlazorApp1.Data
+@using Model.Entidades
+@inject TareaService  ServicioTarea
+@inject NavigationManager navigation
+@inject IJSRuntime JsRuntime
+
+
+<h1>Listado de Tareas</h1>
+
+<button type="button" class="btn btn-primary" @onclick="()=>Editar(0)">Nuevo</button>
+
+
+@if (tareas == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Titulo</th>
+                <th>Vencimiento</th>
+                <th>Estimacion</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var f in tareas)
+            {
+                <tr>
+                    <td>@f.Id</td>
+                    <td>@f.Titulo</td>
+                    <td>@f.Vencimiento</td>
+                    <td>@f.Estimacion</td>
+                    <td>@f.Estado</td>
+
+                    <td><button type="button" class="btn btn-primary" @onclick="()=>VerDetalleTarea(f.Id)" >Detalles</button></td>
+                    <td><button type="button" class="btn btn-success" @onclick="()=>Editar(f.Id)">Editar</button></td>
+                    <td><button type="button" class="btn btn-danger" @onclick="()=>Borrar(f.Id)">Borrar</button></td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+
+
+    private List<Tarea> tareas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        tareas = await ServicioTarea.GetAll();
+    }
+
+    protected void Editar(int id)
+    {
+        navigation.NavigateTo("/EditarTarea/" + id);
+    }
+
+    protected async Task Borrar(int id)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Desea elimiar una tarea?");
+        if (confirmed)
+        {
+            await ServicioTarea.Remove(id);
+            tareas = await ServicioTarea.GetAll();
+        }
+    }
+
+    protected void VerDetalleTarea(int id)
+    {
+        navigation.NavigateTo("/ListadoDetalles/" + id);
+    }
+}
